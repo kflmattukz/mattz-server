@@ -10,6 +10,10 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
+interface AccessToken {
+  access_token: string;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -18,7 +22,7 @@ export class AuthService {
     private config: ConfigService,
   ) {}
 
-  async signup(data: AuthDto): Promise<{ access_token: string }> {
+  async signup(data: AuthDto): Promise<AccessToken> {
     const hash = await argon.hash(data.password);
     try {
       const user = await this.prisma.user.create({
@@ -37,7 +41,7 @@ export class AuthService {
     }
   }
 
-  async signin(data: AuthDto): Promise<{ access_token: string }> {
+  async signin(data: AuthDto): Promise<AccessToken> {
     const user = await this.prisma.user.findUnique({
       where: {
         email: data.email,
@@ -57,7 +61,7 @@ export class AuthService {
     userId: number,
     currPass: string,
     newPass: string,
-  ): Promise<{ access_token: string }> {
+  ): Promise<AccessToken> {
     try {
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
       const isMatch = argon.verify(user.hash, currPass);
@@ -78,10 +82,7 @@ export class AuthService {
     }
   }
 
-  async signToken(
-    userId: number,
-    email: string,
-  ): Promise<{ access_token: string }> {
+  async signToken(userId: number, email: string): Promise<AccessToken> {
     const payload = {
       sub: userId,
       email,

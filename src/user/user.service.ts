@@ -21,6 +21,9 @@ export class UserService {
           lastname,
         },
       });
+
+      delete user.hash;
+
       return user;
     } catch (error) {
       if (
